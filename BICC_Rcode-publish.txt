@@ -1,0 +1,99 @@
+rm(list=ls())
+#####################################################################
+library('igraph')
+library('rlist')
+library('CINNA')
+#####################################################################
+
+#####################################################################
+# network initialization
+edges <-read.table("/users/yevisliu/Desktop/jazz.txt",header = FALSE);
+# tranfer into matrix format
+A<-as.matrix(edges)
+# transfer network into the format of igraph
+g<-graph.edgelist(A,directed=FALSE)
+# extract the giant connected component
+Giant<-giant_component_extract(g)
+g<-Giant[[1]]
+# return the number of nodes and edges
+n<-vcount(g)
+m<-ecount(g)
+nodes<-seq(n)
+threshold<-30
+
+#############################################
+
+#############################################
+#         Betweeness Centrality             #
+#############################################
+# return node betweeness of network (global)
+C.ben<-betweenness(g)
+# normalization
+C.ben<-C.ben/choose(n,2)
+names(C.ben)<-seq(n)
+Mee.b<-cbind(C.ben,nodes)
+ind.b<-Mee.b[order(Mee.b[, 1], decreasing=T), ]
+rownames(ind.b)<-seq(n)
+# output the top 30 nodes of BC
+print(head(ind.b, threshold))
+
+###########################################
+
+###########################################
+#       Closeness Centrality              #
+###########################################
+# return node closeness of network (global)
+C.close<-closeness(g)
+#normalization
+C.close<-C.close*(n-1)
+names(C.close)<-seq(n)
+Mee.c<-cbind(C.close,nodes)
+ind.c<-Mee.c[order(Mee.c[, 1], decreasing=T), ]
+rownames(ind.c)<-seq(n)
+#output the top 30 nodes of CC
+print(head(ind.c, threshold))
+
+###########################################
+
+###########################################
+#      Information Centrality             #
+###########################################
+# return node information of network (global)
+inform<-calculate_centralities(g, include = "Information Centrality")
+C.inform<-inform$`Information Centrality`
+#normalization
+C.inform<-sqrt(C.inform/sqrt(sum(C.inform ^2)))
+names(C.inform)<-seq(n)
+nodes<-seq(n)
+Me1<-cbind(C.inform,nodes)
+ind.i<-Me1[order(Me1[, 1], decreasing=T), ]
+rownames(ind.i)<-seq(n)
+# output the top 30 nodes of IC
+print(head(ind.i, threshold))
+
+###########################################
+
+###########################################
+#            BICC  centrality            #
+###########################################
+# CV
+v1<-sd(C.ben)/mean(C.ben)
+v2<-sd(C.close)/mean(C.close)
+v3<-sd(C.inform)/mean(C.inform)
+v<-c(sqrt(v1),sqrt(v2),sqrt(v3))
+v<-v/sum(v)
+# ICV 
+v<-sqrt(v)
+v<-v/sum(v)
+print(v)
+
+#############################################
+#BICC centrality
+BICC <-v[1]*C.ben+v[2]*C.close+v[3]*C.inform
+names(BICC)<-seq(n)
+nodes<-seq(n)
+Me1<-cbind(BICC,nodes)
+ind.e<-Me1[order(Me1[, 1], decreasing=T), ]
+rownames(ind.e)<-seq(n)
+# output the top 30 nodes of BICC
+print(head(ind.e, threshold))
