@@ -7,7 +7,6 @@ library('CINNA')
 
 #####################################################################
 # network initialization
-edges <-read.table("/users/yevisliu/Desktop/jazz.txt",header = FALSE);
 # tranfer into matrix format
 A<-as.matrix(edges)
 # transfer network into the format of igraph
